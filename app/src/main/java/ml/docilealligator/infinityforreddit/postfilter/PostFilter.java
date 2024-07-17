@@ -224,13 +224,13 @@ public class PostFilter implements Parcelable {
                 return false;
             }
             if (!subpattern.trim().equals("")) {
-                try {
+                // try {
                     Pattern pattern = Pattern.compile(subpattern);
                     Matcher matcher = pattern.matcher(post.getSubredditName());
                     if (matcher.find()) {
                         return false;
                     }
-                } catch (PatternSyntaxException ignore) {}
+                // } catch (PatternSyntaxException ignore) {}
             }
         }
         if (postFilter.excludeUsers != null && !postFilter.excludeUsers.equals("")) {
