@@ -1,3 +1,5 @@
+<a href="https://colab.research.google.com/drive/13AE8RvjnCfuBJGaACEqxeBIMo33_l-Sc?usp=sharing&pli=1#scrollTo=BNM9Hdc_iHNX" target="_blank">link to build</a><br/><br/><br/>
+
 <h1 align="center">
   Infinity For Reddit+ <a href="https://www.patreon.com/docile_alligator"><img src="https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Patreon"></a>
   
