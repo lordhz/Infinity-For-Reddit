@@ -34,7 +34,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import me.saket.bettermovementmethod.BetterLinkMovementMethod;
-import ml.docilealligator.infinityforreddit.FetchMyInfo;
+import ml.docilealligator.infinityforreddit.account.FetchMyInfo;
 import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.RedditDataRoomDatabase;
@@ -164,8 +164,9 @@ public class LoginActivity extends BaseActivity {
                                         String accessToken = responseJSON.getString(APIUtils.ACCESS_TOKEN_KEY);
                                         String refreshToken = responseJSON.getString(APIUtils.REFRESH_TOKEN_KEY);
 
-                                        FetchMyInfo.fetchAccountInfo(mOauthRetrofit, mRedditDataRoomDatabase,
-                                                accessToken, new FetchMyInfo.FetchMyInfoListener() {
+                                        FetchMyInfo.fetchAccountInfo(mExecutor, mHandler, mOauthRetrofit,
+                                                mRedditDataRoomDatabase, accessToken,
+                                                new FetchMyInfo.FetchMyInfoListener() {
                                                     @Override
                                                     public void onFetchMyInfoSuccess(String name, String profileImageUrl, String bannerImageUrl, int karma) {
                                                         mCurrentAccountSharedPreferences.edit().putString(SharedPreferencesUtils.ACCESS_TOKEN, accessToken)
@@ -288,7 +289,7 @@ public class LoginActivity extends BaseActivity {
         binding.getRoot().setBackgroundColor(mCustomThemeWrapper.getBackgroundColor());
         applyAppBarLayoutAndCollapsingToolbarLayoutAndToolbarTheme(binding.appbarLayoutLoginActivity, null, binding.toolbarLoginActivity);
         binding.twoFaInfOTextViewLoginActivity.setTextColor(mCustomThemeWrapper.getPrimaryTextColor());
-        Drawable infoDrawable = Utils.getTintedDrawable(this, R.drawable.ic_info_preference_24dp, mCustomThemeWrapper.getPrimaryIconColor());
+        Drawable infoDrawable = Utils.getTintedDrawable(this, R.drawable.ic_info_preference_day_night_24dp, mCustomThemeWrapper.getPrimaryIconColor());
         binding.twoFaInfOTextViewLoginActivity.setCompoundDrawablesWithIntrinsicBounds(infoDrawable, null, null, null);
         applyFABTheme(binding.fabLoginActivity);
         if (typeface != null) {

@@ -20,10 +20,11 @@ import com.bumptech.glide.RequestManager;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.util.concurrent.Executor;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import ml.docilealligator.infinityforreddit.FragmentCommunicator;
 import ml.docilealligator.infinityforreddit.Infinity;
 import ml.docilealligator.infinityforreddit.NetworkState;
 import ml.docilealligator.infinityforreddit.R;
@@ -55,6 +56,8 @@ public class InboxFragment extends Fragment implements FragmentCommunicator {
     SharedPreferences mSharedPreferences;
     @Inject
     CustomThemeWrapper mCustomThemeWrapper;
+    @Inject
+    Executor mExecutor;
     private String mWhere;
     private MessageRecyclerViewAdapter mAdapter;
     private RequestManager mGlide;
@@ -109,8 +112,8 @@ public class InboxFragment extends Fragment implements FragmentCommunicator {
             });
         }
 
-        MessageViewModel.Factory factory = new MessageViewModel.Factory(mOauthRetrofit,
-                getResources().getConfiguration().locale, mActivity.accessToken, mWhere);
+        MessageViewModel.Factory factory = new MessageViewModel.Factory(mExecutor, mActivity.mHandler,
+                mOauthRetrofit, getResources().getConfiguration().locale, mActivity.accessToken, mWhere);
         mMessageViewModel = new ViewModelProvider(this, factory).get(MessageViewModel.class);
         mMessageViewModel.getMessages().observe(getViewLifecycleOwner(), messages -> mAdapter.submitList(messages));
 
@@ -215,8 +218,8 @@ public class InboxFragment extends Fragment implements FragmentCommunicator {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         EventBus.getDefault().unregister(this);
+        super.onDestroy();
     }
 
     @Override

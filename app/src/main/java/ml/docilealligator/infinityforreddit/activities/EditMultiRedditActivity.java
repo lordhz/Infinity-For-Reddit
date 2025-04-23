@@ -26,13 +26,11 @@ import ml.docilealligator.infinityforreddit.R;
 import ml.docilealligator.infinityforreddit.RedditDataRoomDatabase;
 import ml.docilealligator.infinityforreddit.account.Account;
 import ml.docilealligator.infinityforreddit.customtheme.CustomThemeWrapper;
-import ml.docilealligator.infinityforreddit.customviews.slidr.Slidr;
 import ml.docilealligator.infinityforreddit.databinding.ActivityEditMultiRedditBinding;
 import ml.docilealligator.infinityforreddit.multireddit.EditMultiReddit;
 import ml.docilealligator.infinityforreddit.multireddit.FetchMultiRedditInfo;
 import ml.docilealligator.infinityforreddit.multireddit.MultiReddit;
 import ml.docilealligator.infinityforreddit.multireddit.MultiRedditJSONModel;
-import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 import ml.docilealligator.infinityforreddit.utils.Utils;
 import retrofit2.Retrofit;
 
@@ -71,10 +69,6 @@ public class EditMultiRedditActivity extends BaseActivity {
         setContentView(binding.getRoot());
 
         applyCustomTheme();
-
-        if (mSharedPreferences.getBoolean(SharedPreferencesUtils.SWIPE_RIGHT_TO_GO_BACK, true)) {
-            Slidr.attach(this);
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && isChangeStatusBarIconColor()) {
             addOnOffsetChangedListener(binding.appbarLayoutEditMultiRedditActivity);
@@ -121,22 +115,23 @@ public class EditMultiRedditActivity extends BaseActivity {
                             }
                         });
             } else {
-                FetchMultiRedditInfo.fetchMultiRedditInfo(mRetrofit, accessToken, multipath, new FetchMultiRedditInfo.FetchMultiRedditInfoListener() {
-                    @Override
-                    public void success(MultiReddit multiReddit) {
-                        EditMultiRedditActivity.this.multiReddit = multiReddit;
-                        binding.progressBarEditMultiRedditActivity.setVisibility(View.GONE);
-                        binding.linearLayoutEditMultiRedditActivity.setVisibility(View.VISIBLE);
-                        binding.multiRedditNameEditTextEditMultiRedditActivity.setText(multiReddit.getDisplayName());
-                        binding.descriptionEditTextEditMultiRedditActivity.setText(multiReddit.getDescription());
-                        binding.visibilitySwitchEditMultiRedditActivity.setChecked(!multiReddit.getVisibility().equals("public"));
-                    }
+                FetchMultiRedditInfo.fetchMultiRedditInfo(mExecutor, mHandler, mRetrofit, accessToken,
+                        multipath, new FetchMultiRedditInfo.FetchMultiRedditInfoListener() {
+                            @Override
+                            public void success(MultiReddit multiReddit) {
+                                EditMultiRedditActivity.this.multiReddit = multiReddit;
+                                binding.progressBarEditMultiRedditActivity.setVisibility(View.GONE);
+                                binding.linearLayoutEditMultiRedditActivity.setVisibility(View.VISIBLE);
+                                binding.multiRedditNameEditTextEditMultiRedditActivity.setText(multiReddit.getDisplayName());
+                                binding.descriptionEditTextEditMultiRedditActivity.setText(multiReddit.getDescription());
+                                binding.visibilitySwitchEditMultiRedditActivity.setChecked(!multiReddit.getVisibility().equals("public"));
+                            }
 
-                    @Override
-                    public void failed() {
-                        Snackbar.make(binding.coordinatorLayoutEditMultiRedditActivity, R.string.cannot_fetch_multireddit, Snackbar.LENGTH_SHORT).show();
-                    }
-                });
+                            @Override
+                            public void failed() {
+                                Snackbar.make(binding.coordinatorLayoutEditMultiRedditActivity, R.string.cannot_fetch_multireddit, Snackbar.LENGTH_SHORT).show();
+                            }
+                        });
             }
         } else {
             binding.progressBarEditMultiRedditActivity.setVisibility(View.GONE);

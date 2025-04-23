@@ -35,15 +35,16 @@ import io.noties.markwon.image.AsyncDrawableLoader;
 import io.noties.markwon.image.AsyncDrawableScheduler;
 import io.noties.markwon.image.DrawableUtils;
 import io.noties.markwon.image.ImageProps;
-import ml.docilealligator.infinityforreddit.MediaMetadata;
+import ml.docilealligator.infinityforreddit.thing.MediaMetadata;
 import ml.docilealligator.infinityforreddit.activities.BaseActivity;
 import ml.docilealligator.infinityforreddit.utils.SharedPreferencesUtils;
 import ml.docilealligator.infinityforreddit.utils.Utils;
 
 public class EmotePlugin extends AbstractMarkwonPlugin {
-    private final GlideAsyncDrawableLoader glideAsyncDrawableLoader;
+    private final AsyncDrawableLoader asyncDrawableLoader;
     private boolean dataSavingMode;
     private final boolean disableImagePreview;
+    private final boolean canShowEmote;
     private final OnEmoteClickListener onEmoteClickListener;
 
     public interface GlideStore {
@@ -59,10 +60,16 @@ public class EmotePlugin extends AbstractMarkwonPlugin {
     }
 
     @NonNull
-    public static EmotePlugin create(@NonNull final BaseActivity baseActivity, @NonNull final OnEmoteClickListener onEmoteClickListener) {
+    public static EmotePlugin create(@NonNull final BaseActivity baseActivity, int embeddedMediaType,
+                                     @NonNull final OnEmoteClickListener onEmoteClickListener) {
         // @since 4.5.0 cache RequestManager
-        //  sometimes `cancel` would be called after activity is destroyed,
+        //  sometimes `create` would be called after activity is destroyed,
         //  so `Glide.with(baseActivity)` will throw an exception
+        if (baseActivity.isFinishing() || baseActivity.isDestroyed()) {
+            // No-op
+            return new EmotePlugin();
+        }
+
         RequestManager requestManager = Glide.with(baseActivity);
         return new EmotePlugin(baseActivity, new GlideStore() {
             @NonNull
@@ -75,18 +82,23 @@ public class EmotePlugin extends AbstractMarkwonPlugin {
             public void cancel(@NonNull Target<?> target) {
                 requestManager.clear(target);
             }
-        }, onEmoteClickListener);
+        }, embeddedMediaType, onEmoteClickListener);
     }
 
     @NonNull
-    public static EmotePlugin create(@NonNull final BaseActivity baseActivity, boolean dataSavingMode,
-                                     boolean disableImagePreview,
+    public static EmotePlugin create(@NonNull final BaseActivity baseActivity, int embeddedMediaType,
+                                     boolean dataSavingMode, boolean disableImagePreview,
                                      @NonNull final OnEmoteClickListener onEmoteClickListener) {
         // @since 4.5.0 cache RequestManager
-        //  sometimes `cancel` would be called after activity is destroyed,
+        //  sometimes `create` would be called after activity is destroyed,
         //  so `Glide.with(baseActivity)` will throw an exception
+        if (baseActivity.isFinishing() || baseActivity.isDestroyed()) {
+            // No-op
+            return new EmotePlugin();
+        }
+
         RequestManager requestManager = Glide.with(baseActivity);
-        return new EmotePlugin(baseActivity, new GlideStore() {
+        return new EmotePlugin(new GlideStore() {
             @NonNull
             @Override
             public RequestBuilder<Drawable> load(@NonNull AsyncDrawable drawable) {
@@ -97,13 +109,14 @@ public class EmotePlugin extends AbstractMarkwonPlugin {
             public void cancel(@NonNull Target<?> target) {
                 requestManager.clear(target);
             }
-        }, dataSavingMode, disableImagePreview, onEmoteClickListener);
+        }, embeddedMediaType, dataSavingMode, disableImagePreview, onEmoteClickListener);
     }
 
     @SuppressWarnings("WeakerAccess")
-    EmotePlugin(@NonNull final BaseActivity baseActivity, @NonNull GlideStore glideStore,
+    EmotePlugin(@NonNull final BaseActivity baseActivity,
+                @NonNull GlideStore glideStore, int embeddedMediaType,
                 @NonNull final OnEmoteClickListener onEmoteClickListener) {
-        this.glideAsyncDrawableLoader = new GlideAsyncDrawableLoader(glideStore);
+        this.asyncDrawableLoader = new GlideAsyncDrawableLoader(glideStore);
         String dataSavingModeString = baseActivity.getDefaultSharedPreferences().getString(SharedPreferencesUtils.DATA_SAVING_MODE, SharedPreferencesUtils.DATA_SAVING_MODE_OFF);
         if (dataSavingModeString.equals(SharedPreferencesUtils.DATA_SAVING_MODE_ALWAYS)) {
             dataSavingMode = true;
@@ -111,16 +124,27 @@ public class EmotePlugin extends AbstractMarkwonPlugin {
             dataSavingMode = Utils.getConnectedNetwork(baseActivity) == Utils.NETWORK_TYPE_CELLULAR;
         }
         disableImagePreview = baseActivity.getDefaultSharedPreferences().getBoolean(SharedPreferencesUtils.DISABLE_IMAGE_PREVIEW, false);
+        canShowEmote = SharedPreferencesUtils.canShowEmote(embeddedMediaType);
         this.onEmoteClickListener = onEmoteClickListener;
     }
 
     @SuppressWarnings("WeakerAccess")
-    EmotePlugin(@NonNull final BaseActivity baseActivity, @NonNull GlideStore glideStore, boolean dataSavingMode,
-                boolean disableImagePreview, @NonNull final OnEmoteClickListener onEmoteClickListener) {
-        this.glideAsyncDrawableLoader = new GlideAsyncDrawableLoader(glideStore);
+    EmotePlugin(@NonNull GlideStore glideStore,
+                int embeddedMediaType, boolean dataSavingMode, boolean disableImagePreview,
+                @NonNull final OnEmoteClickListener onEmoteClickListener) {
+        this.asyncDrawableLoader = new GlideAsyncDrawableLoader(glideStore);
         this.dataSavingMode = dataSavingMode;
         this.disableImagePreview = disableImagePreview;
+        canShowEmote = SharedPreferencesUtils.canShowEmote(embeddedMediaType);
         this.onEmoteClickListener = onEmoteClickListener;
+    }
+
+    // Return a no-op EmotePlugin when the Activity is destroyed. It's ugly.
+    private EmotePlugin() {
+        this.asyncDrawableLoader = AsyncDrawableLoader.noOp();
+        this.disableImagePreview = false;
+        this.canShowEmote = false;
+        this.onEmoteClickListener = mediaMetadata -> {};
     }
 
     @Override
@@ -130,13 +154,13 @@ public class EmotePlugin extends AbstractMarkwonPlugin {
 
     @Override
     public void configureConfiguration(@NonNull MarkwonConfiguration.Builder builder) {
-        builder.asyncDrawableLoader(glideAsyncDrawableLoader);
+        builder.asyncDrawableLoader(asyncDrawableLoader);
     }
 
     @Override
     public void configureVisitor(@NonNull MarkwonVisitor.Builder builder) {
         builder.on(Emote.class, (visitor, emote) -> {
-            if (dataSavingMode && disableImagePreview) {
+            if ((dataSavingMode && disableImagePreview) || !canShowEmote) {
                 Link link = new Link(emote.getMediaMetadata().original.url, emote.getTitle());
 
                 final int length = visitor.length();

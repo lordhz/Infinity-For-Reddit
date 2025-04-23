@@ -78,6 +78,7 @@ public class SharedPreferencesUtils {
     public static final int POST_LAYOUT_GALLERY = 2;
     public static final int POST_LAYOUT_CARD_2 = 3;
     public static final int POST_LAYOUT_CARD_3 = 4;
+    public static final int POST_LAYOUT_COMPACT_2 = 5;
 
     public static final String FRONT_PAGE_SCROLLED_POSITION_SHARED_PREFERENCES_FILE = "ml.docilealligator.infinityforreddit.front_page_scrolled_position";
     public static final String FRONT_PAGE_SCROLLED_POSITION_FRONT_PAGE_BASE = "_front_page";
@@ -223,6 +224,8 @@ public class SharedPreferencesUtils {
     private static final String POST_DETAIL_FAB_PORTRAIT_Y_BASE = "fab_portrait_y_";
     private static final String POST_DETAIL_FAB_LANDSCAPE_X_BASE = "fab_landscape_x_";
     private static final String POST_DETAIL_FAB_LANDSCAPE_Y_BASE = "fab_landscape_y_";
+    public static final String REDDIT_VIDEO_DEFAULT_RESOLUTION_NO_DATA_SAVING = "reddit_video_default_resolution_no_data_saving";
+    public static final String HIDE_FAB_IN_POST_DETAILS = "hide_fab_in_post_details";
 
     public static String getPostDetailFabPortraitX(@Nullable Display display) {
         if (display == null) {
@@ -254,6 +257,21 @@ public class SharedPreferencesUtils {
         }
 
         return POST_DETAIL_FAB_LANDSCAPE_Y_BASE + display.getDisplayId();
+    }
+
+    public static final String EMBEDDED_MEDIA_TYPE = "embedded_media_type";
+    public static final int EMBEDDED_MEDIA_ALL = 15;
+
+    public static boolean canShowImage(int embeddedMediaType) {
+        return embeddedMediaType == 15 || embeddedMediaType == 7 || embeddedMediaType == 6 || embeddedMediaType == 3;
+    }
+
+    public static boolean canShowGif(int embeddedMediaType) {
+        return embeddedMediaType == 15 || embeddedMediaType == 7 || embeddedMediaType == 5 || embeddedMediaType == 2;
+    }
+
+    public static boolean canShowEmote(int embeddedMediaType) {
+        return embeddedMediaType == 15 || embeddedMediaType == 6 || embeddedMediaType == 5 || embeddedMediaType == 1;
     }
 
     public static final String DEFAULT_PREFERENCES_FILE = "ml.docilealligator.infinityforreddit_preferences";
@@ -371,6 +389,8 @@ public class SharedPreferencesUtils {
 
     public static final String POST_HISTORY_SHARED_PREFERENCES_FILE = "ml.docilealligator.infinityforreddit.post_history";
     public static final String MARK_POSTS_AS_READ_BASE = "_mark_posts_as_read";
+    public static final String READ_POSTS_LIMIT_ENABLED = "_read_posts_limit_enabled";
+    public static final String READ_POSTS_LIMIT = "_read_posts_limit";
     public static final String MARK_POSTS_AS_READ_AFTER_VOTING_BASE = "_mark_posts_as_read_after_voting";
     public static final String MARK_POSTS_AS_READ_ON_SCROLL_BASE = "_mark_posts_as_read_on_scroll";
     public static final String HIDE_READ_POSTS_AUTOMATICALLY_BASE = "_hide_read_posts_automatically";
@@ -380,6 +400,7 @@ public class SharedPreferencesUtils {
     public static final String ACCESS_TOKEN = "access_token";
     public static final String ACCOUNT_IMAGE_URL = "account_image_url";
     public static final String REDGIFS_ACCESS_TOKEN = "redgifs_access_token";
+    public static final String INBOX_COUNT = "inbox_count";
 
     public static final String NAVIGATION_DRAWER_SHARED_PREFERENCES_FILE = "ml.docilealligator.infinityforreddit.navigation_drawer";
     public static final String COLLAPSE_ACCOUNT_SECTION = "collapse_account_section";
@@ -405,6 +426,12 @@ public class SharedPreferencesUtils {
     public static final String INTERNAL_SHARED_PREFERENCES_FILE = "ml.docilealligator.infinityforreddit.internal";
     public static final String HAS_REQUESTED_NOTIFICATION_PERMISSION = "has_requested_notification_permission";
     public static final String DO_NOT_SHOW_REDDIT_API_INFO_V2_AGAIN = "do_not_show_reddit_api_info_v2_again";
+
+    public static final String PROXY_SHARED_PREFERENCES_FILE = "ml.docilealligator.infinityforreddit.proxy";
+    public static final String PROXY_ENABLED = "proxy_enabled";
+    public static final String PROXY_TYPE = "proxy_type";
+    public static final String PROXY_HOSTNAME = "proxy_hostname";
+    public static final String PROXY_PORT = "proxy_port";
 
     //Legacy Settings
     public static final String MAIN_PAGE_TAB_1_TITLE_LEGACY = "main_page_tab_1_title";
